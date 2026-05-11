@@ -1,3 +1,7 @@
+function formatPrecio(valor) {
+  return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(valor);
+}
+
 async function crearCards() {
   const cont = document.getElementById("cards-container");
   if (!cont) return;
@@ -14,7 +18,7 @@ async function crearCards() {
         <div class="card-content">
           <h3>${p.nombre}</h3>
           <p>${p.desc}</p>
-          <p class='precio'>$${p.precio}</p>
+          <p class='precio'>${formatPrecio(p.precio)}</p>
           <button class='btn' onclick='agregarAlCarrito(${JSON.stringify(p).replace(/'/g, "&#39;")})'>Agregar al carrito</button>
         </div>
       </div>`;

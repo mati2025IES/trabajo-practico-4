@@ -14,6 +14,25 @@
     <div id="carrito-container"></div>
     <div id="carrito-total" class="carrito-total"></div>
     <div id="carrito-acciones" class="carrito-acciones"></div>
+
+    <!-- Formulario de checkout (oculto hasta confirmar compra) -->
+    <div id="checkout-form" class="checkout-form" style="display:none;">
+      <h3>Datos de envío</h3>
+      <form id="form-envio">
+        <label for="direccion">Dirección de envío</label>
+        <input type="text" id="direccion" placeholder="Ej: Av. Corrientes 1234, CABA" required>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="envio-express">
+          Envío express (+24hs)
+        </label>
+
+        <div class="checkout-botones">
+          <button type="button" class="btn btn-cancelar" onclick="cancelarCheckout()">Cancelar</button>
+          <button type="submit" class="btn btn-comprar">Confirmar compra</button>
+        </div>
+      </form>
+    </div>
   </main>
 
   <footer>

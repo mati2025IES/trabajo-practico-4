@@ -6,7 +6,7 @@
     "precio": 1500,
     "imagen": "../imagenes/barco.webp",
     "categoria": "figuras",
-    "stock": 12,
+    "stock": 10,
     "destacado": true
   },
   {
@@ -16,7 +16,7 @@
     "precio": 2500,
     "imagen": "../imagenes/robot.webp",
     "categoria": "figuras",
-    "stock": 8,
+    "stock": 7,
     "destacado": true
   },
   {

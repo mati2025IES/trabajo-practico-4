@@ -158,5 +158,23 @@
         "cantidad": 4
       }
     ]
+  },
+  {
+    "id": 11,
+    "id_usuario": 2,
+    "fecha": "2026-05-11",
+    "total": 5500,
+    "direccion": "Corrientes 123",
+    "envio_express": true,
+    "productos": [
+      {
+        "id_producto": 1,
+        "cantidad": 2
+      },
+      {
+        "id_producto": 2,
+        "cantidad": 1
+      }
+    ]
   }
 ]

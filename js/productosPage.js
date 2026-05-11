@@ -3,14 +3,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   const filtroSelect = document.getElementById("filtro-categoria");
   let todosLosProductos = [];
 
+  function formatPrecio(valor) {
+    return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(valor);
+  }
+
   try {
     const res = await fetch("/api/productos");
     todosLosProductos = await res.json();
+    poblarFiltro(todosLosProductos);
     renderProductos(todosLosProductos);
   } catch (error) {
     console.error("Error cargando productos:", error);
     contenedor.innerHTML = "<p>Error al cargar los productos.</p>";
     return;
+  }
+
+  function poblarFiltro(productos) {
+    if (!filtroSelect) return;
+    const categorias = [...new Set(productos.map(p => p.categoria))];
+    // Limpiar opciones hardcodeadas y regenerar dinámicamente
+    filtroSelect.innerHTML = `<option value="todas">Todas</option>`;
+    categorias.forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+      filtroSelect.appendChild(opt);
+    });
   }
 
   if (filtroSelect) {
@@ -55,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div class="card-content">
             <h3>${producto.nombre}</h3>
             <p>${producto.desc}</p>
-            <p class="precio">$${producto.precio}</p>
+            <p class="precio">${formatPrecio(producto.precio)}</p>
             <p class="stock">Stock: ${producto.stock}</p>
             <div class="cantidad">
               <button class="menos">-</button>
@@ -68,7 +86,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const span = card.querySelector("span");
         card.querySelector(".mas").addEventListener("click", () => {
-          span.textContent = parseInt(span.textContent) + 1;
+          const val = parseInt(span.textContent);
+          if (val < producto.stock) span.textContent = val + 1;
         });
         card.querySelector(".menos").addEventListener("click", () => {
           const valor = parseInt(span.textContent);

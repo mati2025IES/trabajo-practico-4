@@ -50,7 +50,7 @@ router.post('/', (req, res) => {
   usuarios.push(nuevoUsuario);
   escribirJSON('usuarios.json', usuarios);
   const { contraseña: _, ...sinPassword } = nuevoUsuario;
-  res.status(201).json(sinPassword);
+  res.status(201).json({ mensaje: 'Usuario creado correctamente', usuario: sinPassword });
 });
 
 router.put('/:id', (req, res) => {
@@ -68,7 +68,7 @@ router.put('/:id', (req, res) => {
 
   escribirJSON('usuarios.json', usuarios);
   const { contraseña: _, ...sinPassword } = usuarios[index];
-  res.json(sinPassword);
+  res.json({ mensaje: 'Usuario actualizado correctamente', usuario: sinPassword });
 });
 
 router.delete('/:id', (req, res) => {

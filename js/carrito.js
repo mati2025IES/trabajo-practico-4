@@ -2,9 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const contenedor = document.getElementById("carrito-container");
   const totalDiv = document.getElementById("carrito-total");
   const accionesDiv = document.getElementById("carrito-acciones");
+  const checkoutForm = document.getElementById("checkout-form");
+  const formEnvio = document.getElementById("form-envio");
+
+  function formatPrecio(valor) {
+    return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(valor);
+  }
 
   function renderCarrito() {
     const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+    checkoutForm.style.display = "none";
 
     if (carrito.length === 0) {
       contenedor.innerHTML = "<p>Tu carrito está vacío.</p>";
@@ -29,67 +36,59 @@ document.addEventListener("DOMContentLoaded", () => {
     carrito.forEach((item, index) => {
       const subtotal = item.precio * item.cantidad;
       total += subtotal;
+      const imgSrc = item.imagen ? item.imagen.replace("../", "/") : "";
       html += `<tr>
-        <td>${item.nombre}</td>
-        <td>$${item.precio}</td>
+        <td class="td-producto">
+          ${imgSrc ? `<img src="${imgSrc}" alt="${item.nombre}" class="carrito-img">` : ""}
+          <span>${item.nombre}</span>
+        </td>
+        <td>${formatPrecio(item.precio)}</td>
         <td>
           <button class="cantidad-btn" onclick="cambiarCantidad(${index}, -1)">-</button>
           <span>${item.cantidad}</span>
           <button class="cantidad-btn" onclick="cambiarCantidad(${index}, 1)">+</button>
         </td>
-        <td>$${subtotal}</td>
+        <td>${formatPrecio(subtotal)}</td>
         <td><button class="btn btn-eliminar" onclick="eliminarItem(${index})">X</button></td>
       </tr>`;
     });
 
     html += `</tbody></table>`;
     contenedor.innerHTML = html;
-    totalDiv.innerHTML = `<h3>Total: $${total}</h3>`;
+    totalDiv.innerHTML = `<h3>Total: ${formatPrecio(total)}</h3>`;
 
     accionesDiv.innerHTML = `
-      <button class="btn" onclick="vaciarCarrito()">Vaciar carrito</button>
-      <button class="btn btn-comprar" onclick="realizarCompra()">Confirmar compra</button>
+      <button class="btn btn-vaciar" onclick="vaciarCarrito()">Vaciar carrito</button>
+      <button class="btn btn-comprar" onclick="mostrarCheckout()">Confirmar compra</button>
     `;
   }
 
-  window.cambiarCantidad = function(index, delta) {
-    const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
-    carrito[index].cantidad += delta;
-    if (carrito[index].cantidad <= 0) carrito.splice(index, 1);
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-    renderCarrito();
-    crearNavbar();
-  };
-
-  window.eliminarItem = function(index) {
-    const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
-    carrito.splice(index, 1);
-    localStorage.setItem("carrito", JSON.stringify(carrito));
-    renderCarrito();
-    crearNavbar();
-  };
-
-  window.vaciarCarrito = function() {
-    localStorage.setItem("carrito", JSON.stringify([]));
-    renderCarrito();
-    crearNavbar();
-  };
-
-  window.realizarCompra = async function() {
+  window.mostrarCheckout = function() {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
     if (!usuario) {
       alert("Debes iniciar sesión para comprar.");
       window.location.href = "/pages/login.html";
       return;
     }
+    checkoutForm.style.display = "block";
+    checkoutForm.scrollIntoView({ behavior: "smooth" });
+  };
 
+  window.cancelarCheckout = function() {
+    checkoutForm.style.display = "none";
+    document.getElementById("direccion").value = "";
+    document.getElementById("envio-express").checked = false;
+  };
+
+  formEnvio.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
     const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
-    if (carrito.length === 0) return;
+    if (!usuario || carrito.length === 0) return;
 
-    const direccion = prompt("Ingresá tu dirección de envío:");
-    if (!direccion) return;
-
-    const envio_express = confirm("¿Querés envío express?");
+    const direccion = document.getElementById("direccion").value.trim();
+    const envio_express = document.getElementById("envio-express").checked;
 
     const venta = {
       id_usuario: usuario.id,
@@ -115,14 +114,38 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const resultado = await res.json();
-      alert(`¡Compra realizada! Orden #${resultado.id} - Total: $${resultado.total}`);
+      alert(`¡Compra realizada! Orden #${resultado.id} - Total: ${formatPrecio(resultado.total)}`);
       localStorage.setItem("carrito", JSON.stringify([]));
+      cancelarCheckout();
       renderCarrito();
       crearNavbar();
     } catch (error) {
       console.error("Error:", error);
       alert("Error al conectar con el servidor.");
     }
+  });
+
+  window.cambiarCantidad = function(index, delta) {
+    const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+    carrito[index].cantidad += delta;
+    if (carrito[index].cantidad <= 0) carrito.splice(index, 1);
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+    renderCarrito();
+    crearNavbar();
+  };
+
+  window.eliminarItem = function(index) {
+    const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+    carrito.splice(index, 1);
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+    renderCarrito();
+    crearNavbar();
+  };
+
+  window.vaciarCarrito = function() {
+    localStorage.setItem("carrito", JSON.stringify([]));
+    renderCarrito();
+    crearNavbar();
   };
 
   renderCarrito();
