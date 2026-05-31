@@ -26,6 +26,7 @@ function crearNavbar() {
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("loggedIn");
       localStorage.removeItem("usuario");
+      localStorage.removeItem("token");
       window.location.href = "/pages/login.html";
     });
   }

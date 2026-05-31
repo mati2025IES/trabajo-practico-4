@@ -21,15 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let html = `<table class="carrito-tabla">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Precio</th>
-          <th>Cantidad</th>
-          <th>Subtotal</th>
-          <th></th>
-        </tr>
-      </thead>
+      <thead><tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th><th></th></tr></thead>
       <tbody>`;
 
     let total = 0;
@@ -56,14 +48,13 @@ document.addEventListener("DOMContentLoaded", () => {
     html += `</tbody></table>`;
     contenedor.innerHTML = html;
     totalDiv.innerHTML = `<h3>Total: ${formatPrecio(total)}</h3>`;
-
     accionesDiv.innerHTML = `
       <button class="btn btn-vaciar" onclick="vaciarCarrito()">Vaciar carrito</button>
       <button class="btn btn-comprar" onclick="mostrarCheckout()">Confirmar compra</button>
     `;
   }
 
-  window.mostrarCheckout = function() {
+  window.mostrarCheckout = function () {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
     if (!usuario) {
       alert("Debes iniciar sesión para comprar.");
@@ -74,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkoutForm.scrollIntoView({ behavior: "smooth" });
   };
 
-  window.cancelarCheckout = function() {
+  window.cancelarCheckout = function () {
     checkoutForm.style.display = "none";
     document.getElementById("direccion").value = "";
     document.getElementById("envio-express").checked = false;
@@ -83,27 +74,26 @@ document.addEventListener("DOMContentLoaded", () => {
   formEnvio.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const usuario = JSON.parse(localStorage.getItem("usuario") || "null");
     const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
-    if (!usuario || carrito.length === 0) return;
+    const token = localStorage.getItem("token");
+    if (!token || carrito.length === 0) return;
 
     const direccion = document.getElementById("direccion").value.trim();
     const envio_express = document.getElementById("envio-express").checked;
 
     const venta = {
-      id_usuario: usuario.id,
       direccion,
       envio_express,
-      productos: carrito.map(item => ({
-        id_producto: item.id,
-        cantidad: item.cantidad
-      }))
+      productos: carrito.map(item => ({ id_producto: item._id, cantidad: item.cantidad }))
     };
 
     try {
       const res = await fetch("/api/ventas", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(venta)
       });
 
@@ -114,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const resultado = await res.json();
-      alert(`¡Compra realizada! Orden #${resultado.id} - Total: ${formatPrecio(resultado.total)}`);
+      alert(`¡Compra realizada! Total: ${formatPrecio(resultado.total)}`);
       localStorage.setItem("carrito", JSON.stringify([]));
       cancelarCheckout();
       renderCarrito();
@@ -125,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  window.cambiarCantidad = function(index, delta) {
+  window.cambiarCantidad = function (index, delta) {
     const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
     carrito[index].cantidad += delta;
     if (carrito[index].cantidad <= 0) carrito.splice(index, 1);
@@ -134,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     crearNavbar();
   };
 
-  window.eliminarItem = function(index) {
+  window.eliminarItem = function (index) {
     const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
     carrito.splice(index, 1);
     localStorage.setItem("carrito", JSON.stringify(carrito));
@@ -142,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     crearNavbar();
   };
 
-  window.vaciarCarrito = function() {
+  window.vaciarCarrito = function () {
     localStorage.setItem("carrito", JSON.stringify([]));
     renderCarrito();
     crearNavbar();

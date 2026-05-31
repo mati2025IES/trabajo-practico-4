@@ -1,82 +1,71 @@
 import express from 'express';
-import { leerJSON, escribirJSON } from '../utils/dataHandler.js';
+import Venta from '../models/Venta.js';
+import Producto from '../models/Producto.js';
+import Usuario from '../models/Usuario.js';
+import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  const ventas = leerJSON('ventas.json');
+router.get('/', async (req, res) => {
+  const ventas = await Venta.find();
   res.json(ventas);
 });
 
-router.get('/:id', (req, res) => {
-  const ventas = leerJSON('ventas.json');
-  const venta = ventas.find(v => v.id === parseInt(req.params.id));
+router.get('/:id', async (req, res) => {
+  const venta = await Venta.findById(req.params.id);
   if (!venta) return res.status(404).json({ error: 'Venta no encontrada' });
   res.json(venta);
 });
 
-router.post('/por-usuario', (req, res) => {
+router.post('/por-usuario', async (req, res) => {
   const { id_usuario } = req.body;
   if (!id_usuario) return res.status(400).json({ error: 'id_usuario es requerido' });
-  const ventas = leerJSON('ventas.json');
-  const ventasUsuario = ventas.filter(v => v.id_usuario === id_usuario);
-  res.json(ventasUsuario);
+  const ventas = await Venta.find({ id_usuario });
+  res.json(ventas);
 });
 
-router.post('/', (req, res) => {
-  const { id_usuario, direccion, envio_express, productos } = req.body;
-  if (!id_usuario || !direccion || !productos || !Array.isArray(productos) || productos.length === 0) {
-    return res.status(400).json({ error: 'id_usuario, direccion y productos (array) son requeridos' });
+router.post('/', auth, async (req, res) => {
+  const { direccion, envio_express, productos } = req.body;
+  if (!direccion || !productos || !Array.isArray(productos) || productos.length === 0) {
+    return res.status(400).json({ error: 'direccion y productos (array) son requeridos' });
   }
 
-  const usuarios = leerJSON('usuarios.json');
-  const usuario = usuarios.find(u => u.id === id_usuario);
+  const usuario = await Usuario.findById(req.usuario.id);
   if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-  const productosDB = leerJSON('productos.json');
   let total = 0;
   for (const item of productos) {
-    const prod = productosDB.find(p => p.id === item.id_producto);
-    if (!prod) return res.status(404).json({ error: `Producto con id ${item.id_producto} no encontrado` });
+    const prod = await Producto.findById(item.id_producto);
+    if (!prod) return res.status(404).json({ error: `Producto ${item.id_producto} no encontrado` });
     const cant = item.cantidad || 1;
-    if (prod.stock < cant) {
-      return res.status(400).json({ error: `Stock insuficiente para "${prod.nombre}". Disponible: ${prod.stock}` });
-    }
+    if (prod.stock < cant) return res.status(400).json({ error: `Stock insuficiente para "${prod.nombre}"` });
     total += prod.precio * cant;
   }
 
   for (const item of productos) {
-    const prod = productosDB.find(p => p.id === item.id_producto);
-    prod.stock -= (item.cantidad || 1);
+    await Producto.findByIdAndUpdate(item.id_producto, { $inc: { stock: -(item.cantidad || 1) } });
   }
-  escribirJSON('productos.json', productosDB);
 
-  const ventas = leerJSON('ventas.json');
-  const nuevaVenta = {
-    id: ventas.length > 0 ? Math.max(...ventas.map(v => v.id)) + 1 : 1,
-    id_usuario,
-    fecha: new Date().toISOString().split('T')[0],
+  const venta = await Venta.create({
+    id_usuario: req.usuario.id,
     total,
     direccion,
     envio_express: envio_express || false,
     productos
-  };
-  ventas.push(nuevaVenta);
-  escribirJSON('ventas.json', ventas);
-  res.status(201).json(nuevaVenta);
+  });
+
+  res.status(201).json(venta);
 });
 
-router.put('/:id', (req, res) => {
-  const ventas = leerJSON('ventas.json');
-  const index = ventas.findIndex(v => v.id === parseInt(req.params.id));
-  if (index === -1) return res.status(404).json({ error: 'Venta no encontrada' });
-
+router.put('/:id', async (req, res) => {
   const { direccion, envio_express } = req.body;
-  if (direccion) ventas[index].direccion = direccion;
-  if (typeof envio_express === 'boolean') ventas[index].envio_express = envio_express;
+  const update = {};
+  if (direccion) update.direccion = direccion;
+  if (typeof envio_express === 'boolean') update.envio_express = envio_express;
 
-  escribirJSON('ventas.json', ventas);
-  res.json(ventas[index]);
+  const venta = await Venta.findByIdAndUpdate(req.params.id, update, { new: true });
+  if (!venta) return res.status(404).json({ error: 'Venta no encontrada' });
+  res.json(venta);
 });
 
 export default router;

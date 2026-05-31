@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos - CapaCapa</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <div id="navbar"></div>
+  </header>
+
+  <main class="productos">
+    <h2>Nuestros Productos</h2>
+    <div class="filtro-container">
+      <label for="filtro-categoria">Filtrar por categoría:</label>
+      <select id="filtro-categoria">
+        <option value="todas">Todas</option>
+      </select>
+    </div>
+    <div id="productos-container" class="cards-container"></div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 CapaCapa - Todos los derechos reservados.</p>
+  </footer>
+
+  <script src="/js/navbar.js"></script>
+  <script src="/js/productosPage.js"></script>
+</body>
+</html>

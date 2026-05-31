@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("token", data.token);
         localStorage.setItem("usuario", JSON.stringify(data.usuario));
         window.location.href = "/index.html";
       } catch (error) {

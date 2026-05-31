@@ -24,14 +24,12 @@ async function crearCards() {
       </div>`;
     });
 
-    const linkCardHTML = `
+    cont.innerHTML = html + `
       <a href="/pages/productos.html" class="card card-link">
         <h3>Ver todos los productos</h3>
         <p>Hacé clic acá para ver el catálogo completo.</p>
         <span class="flecha">&rarr;</span>
       </a>`;
-
-    cont.innerHTML = html + linkCardHTML;
   } catch (error) {
     console.error("Error cargando productos:", error);
     cont.innerHTML = "<p>Error al cargar los productos.</p>";
@@ -40,7 +38,7 @@ async function crearCards() {
 
 function agregarAlCarrito(producto) {
   const carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
-  const existente = carrito.find(item => item.id === producto.id);
+  const existente = carrito.find(item => item._id === producto._id);
   if (existente) {
     existente.cantidad++;
   } else {
